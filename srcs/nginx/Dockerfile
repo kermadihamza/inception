@@ -5,7 +5,7 @@ RUN apt-get -y update
 
 RUN apt-get -y install nginx \
     openssl
- 
+
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
