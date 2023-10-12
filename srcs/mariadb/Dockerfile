@@ -1,18 +1,22 @@
+# Utilisez une image de base Debian Buster
 FROM debian:buster
 
-RUN apt-get -y update
+# Mise à jour de la liste des paquets
+RUN apt-get update -y
 
-RUN apt-get install mariadb-server \
-                    mariadb-client -y
+# Installation de MariaDB Server et Client
+RUN apt-get install -y mariadb-server mariadb-client
 
-# need to copy the script into the container otherwise can't execute it from the container
+# Copiez les scripts et fichiers de configuration dans le conteneur
 COPY mysql_secure.sh /tmp/
 COPY mdb_script.sh /tmp/
 COPY my.cnf /etc/mysql/my.cnf
 
-RUN chmod u+x /tmp/mdb_script.sh
+# Donnez la permission d'exécuter au script mdb_script.sh
+RUN chmod +x /tmp/mdb_script.sh
 
-# Databse connection error probably linked to the mariadb config file which should be modified
+# Exposez le port 3306 pour les connexions à MariaDB
 EXPOSE 3306
 
+# Démarrez MariaDB en exécutant le script mdb_script.sh
 CMD ["/tmp/mdb_script.sh", "-F"]
