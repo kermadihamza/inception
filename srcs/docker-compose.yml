@@ -1,0 +1,66 @@
+# This denotes that we are using version 3 of Docker Compose
+version: '3'
+# This section defines all the different containers we will create
+services:
+  nginx:
+    container_name: nginx
+    # This specifies the location of our Dockerfile and . represents the directory where the docker-compose.yml file is located.
+    build: ./nginx
+    # Mapping of host port to container port
+    ports:
+      - "443:443"
+    # wordpress_file on the host will be linked to /var/www/html in the container
+    volumes:
+      - wp:/var/www/html
+    # Always restart the container if it stops
+    restart: always
+    # Docker networking allows you to attach a container to as many networks as you like. 
+    networks:
+      - compose-network
+  wordpress:
+    container_name: wordpress
+    build: ./wordpress
+    # The /var/www/html is a directory in my container & wordpress_file is a directory on my VM
+    # Both the nginx and the wp containers must share the same volume as nginx gets index.php file
+    volumes:
+      - wp:/var/www/html
+    restart: always
+    # sets environment variables inside the container
+    env_file:
+      - .env
+    # Express dependency between services. Service dependencies cause the following behaviors:
+    # depends_on is a Docker Compose keyword to set the order in which services must start and stop. 
+    depends_on:
+      - nginx
+      - mariadb
+    networks:
+      - compose-network
+  mariadb:
+    container_name: mariadb
+    build: ./mariadb
+    volumes:
+      - db:/var/lib/mysql
+    env_file:
+      - .env
+    restart: always
+    networks:
+      - compose-network
+
+# Avec des volumes bien configurés, il est possible de réutiliser certaines données dans un autre conteneur
+# Here we are mounting a particular host directory (/home/hdony/data/wordpress_file/) in the containers, making it permanent data
+volumes:
+  wp:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/hakermad/data/wordpress
+  db:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: /home/hakermad/data/mariadb
+networks:
+  compose-network:
+
